@@ -1,16 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCustomers } from "../contexts/CustomerContext";
 import { useTransactions } from "../contexts/TransactionContext";
 import { Combobox } from "@headlessui/react";
+import ClipLoader from "react-spinners/ClipLoader";
+import ModalMessage from "./ModalMessage";
 
-const TransactionForm = ({ onClose }) => {
+const TransactionForm = ({ onClose, transaction }) => {
   const { customers } = useCustomers();
-  const { addTransaction, fetchTransactions } = useTransactions();
+  const {
+    addTransaction,
+    updateTransaction: updateTransactionFromContext,
+    fetchTransactions,
+  } = useTransactions();
+
+  // Fallback if updateTransaction is missing
+  const updateTransaction =
+    updateTransactionFromContext ||
+    (async () => {
+      alert("Update transaction is not implemented.");
+      return false;
+    });
+
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [animals, setAnimals] = useState([
     { type: "", price: "", kilos: "", heads: "" },
   ]);
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState({ open: false, type: "", message: "" });
+
+  // Pre-fill form if editing
+  useEffect(() => {
+    if (transaction) {
+      setSelectedCustomer(transaction.customerId || "");
+      setAnimals(
+        transaction.animals && transaction.animals.length > 0
+          ? transaction.animals.map((a) => ({
+              type: a.type || a.name || "",
+              price: a.price || "",
+              kilos: a.kilos || "",
+              heads: a.heads || "",
+            }))
+          : [{ type: "", price: "", kilos: "", heads: "" }]
+      );
+    } else {
+      setSelectedCustomer("");
+      setAnimals([{ type: "", price: "", kilos: "", heads: "" }]);
+    }
+  }, [transaction]);
 
   const handleAnimalChange = (index, field, value) => {
     const updatedAnimals = [...animals];
@@ -37,19 +74,55 @@ const TransactionForm = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedCustomer) {
-      alert("Please select a customer.");
+      setModal({
+        open: true,
+        type: "error",
+        message: "Please select a customer.",
+      });
       return;
     }
+    setLoading(true);
+    const totalAmount = calculateTotal();
 
-    const success = await addTransaction(selectedCustomer, animals);
+    let success = false;
+    if (transaction) {
+      success = await updateTransaction(
+        transaction.id,
+        selectedCustomer,
+        animals,
+        totalAmount
+      );
+    } else {
+      success = await addTransaction(selectedCustomer, animals, totalAmount);
+    }
+    setLoading(false);
 
     if (success) {
-      alert("Transaction added successfully!");
+      setModal({
+        open: true,
+        type: "success",
+        message: transaction
+          ? "Transaction updated successfully!"
+          : "Transaction added successfully!",
+      });
       setAnimals([{ type: "", price: "", kilos: "", heads: "" }]);
       fetchTransactions(customers);
-      onClose();
+      // onClose will be called after modal closes
     } else {
-      alert("Failed to add transaction.");
+      setModal({
+        open: true,
+        type: "error",
+        message: transaction
+          ? "Failed to update transaction."
+          : "Failed to add transaction.",
+      });
+    }
+  };
+
+  const handleModalClose = () => {
+    setModal({ open: false, type: "", message: "" });
+    if (modal.type === "success") {
+      onClose();
     }
   };
 
@@ -57,11 +130,11 @@ const TransactionForm = ({ onClose }) => {
     query === ""
       ? customers
       : customers.filter((customer) =>
-        customer.name
-          .toLowerCase()
-          .replace(/\s+/g, "")
-          .includes(query.toLowerCase().replace(/\s+/g, ""))
-      );
+          customer.name
+            .toLowerCase()
+            .replace(/\s+/g, "")
+            .includes(query.toLowerCase().replace(/\s+/g, ""))
+        );
 
   return (
     <div
@@ -78,7 +151,7 @@ const TransactionForm = ({ onClose }) => {
             className="text-xl font-bold tracking-wider"
             style={{ fontFamily: "PlayfairDisplay, sans-serif" }}
           >
-            Add New Transaction
+            {transaction ? "Edit Transaction" : "Add New Transaction"}
           </h2>
           <button
             onClick={onClose}
@@ -105,6 +178,7 @@ const TransactionForm = ({ onClose }) => {
                   }
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search customer..."
+                  disabled={!!transaction} // Prevent changing customer on edit
                 />
                 <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                   {filteredCustomers.length === 0 && query !== "" ? (
@@ -122,14 +196,18 @@ const TransactionForm = ({ onClose }) => {
                       >
                         {({ selected, active }) => (
                           <div
-                            className={`relative cursor-pointer select-none py-2 px-4 ${active ? "bg-indigo-600 text-white" : "text-gray-900"
-                              } ${selected ? "font-medium" : "font-normal"}`}
+                            className={`relative cursor-pointer select-none py-2 px-4 ${
+                              active
+                                ? "bg-indigo-600 text-white"
+                                : "text-gray-900"
+                            } ${selected ? "font-medium" : "font-normal"}`}
                           >
                             {customer.name}
                             {selected && (
                               <span
-                                className={`absolute inset-y-0 right-4 flex items-center ${active ? "text-white" : "text-indigo-600"
-                                  }`}
+                                className={`absolute inset-y-0 right-4 flex items-center ${
+                                  active ? "text-white" : "text-indigo-600"
+                                }`}
                               >
                                 ✓
                               </span>
@@ -153,15 +231,19 @@ const TransactionForm = ({ onClose }) => {
             </h2>
             {animals.map((animal, index) => (
               <div key={index} className="flex items-center space-x-4">
-                <input
-                  type="text"
-                  placeholder="Animal Type"
+                <select
                   value={animal.type}
                   onChange={(e) =>
                     handleAnimalChange(index, "type", e.target.value)
                   }
                   className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
+                >
+                  <option value="">Select Animal Type</option>
+                  <option value="Hogs">Hogs</option>
+                  <option value="Chicken">Chicken</option>
+                  <option value="Cattle">Cattle</option>
+                  <option value="Sheep">Sheep</option>
+                </select>
                 <input
                   type="number"
                   placeholder="Kilos"
@@ -218,12 +300,25 @@ const TransactionForm = ({ onClose }) => {
           </div>
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 uppercase"
+            className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 uppercase"
+            disabled={loading}
           >
-            Submit Transaction
+            {loading ? (
+              <ClipLoader color="#fff" size={20} />
+            ) : transaction ? (
+              "Update Transaction"
+            ) : (
+              "Submit Transaction"
+            )}
           </button>
         </form>
       </div>
+      <ModalMessage
+        open={modal.open}
+        type={modal.type}
+        message={modal.message}
+        onClose={handleModalClose}
+      />
     </div>
   );
 };

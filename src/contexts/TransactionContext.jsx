@@ -16,6 +16,7 @@ import {
   query,
   orderBy,
   getDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { useCustomers } from "./CustomerContext";
 
@@ -121,10 +122,65 @@ export const TransactionProvider = ({ children }) => {
     }
   };
 
+  const updateTransaction = async (
+    transactionId,
+    customerId,
+    animals,
+    totalAmount
+  ) => {
+    try {
+      const transactionRef = doc(
+        db,
+        "customers",
+        customerId,
+        "transactions",
+        transactionId
+      );
+      await updateDoc(transactionRef, {
+        animals,
+        totalAmount,
+        // Optionally update timestamp: timestamp: serverTimestamp(),
+      });
+
+      setTransactions((prev) =>
+        prev.map((t) =>
+          t.id === transactionId ? { ...t, animals, totalAmount } : t
+        )
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Error updating transaction:", error);
+      return false;
+    }
+  };
+
+  const deleteTransaction = async (transactionId, customerId) => {
+    try {
+      const transactionRef = doc(
+        db,
+        "customers",
+        customerId,
+        "transactions",
+        transactionId
+      );
+      await deleteDoc(transactionRef);
+      setTransactions((prev) =>
+        prev.filter((t) => t.id !== transactionId)
+      );
+      return true;
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      return false;
+    }
+  };
+
   const value = {
     transactions,
     fetchTransactions,
     addTransaction,
+    updateTransaction,
+    deleteTransaction,
     isLoading,
   };
 

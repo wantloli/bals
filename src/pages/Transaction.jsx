@@ -7,7 +7,8 @@ import SearchBar from "../components/SearchBar";
 
 const Transaction = () => {
   const { customers, fetchCustomers } = useCustomers();
-  const { transactions, fetchTransactions, isLoading } = useTransactions();
+  const { transactions, fetchTransactions, isLoading, deleteTransaction } =
+    useTransactions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,6 +43,13 @@ const Transaction = () => {
       return new Date(timestamp.seconds * 1000).toLocaleDateString();
     }
     return "Invalid Date";
+  };
+
+  const handleDelete = async (transaction) => {
+    if (window.confirm("Are you sure you want to delete this transaction?")) {
+      await deleteTransaction(transaction.id, transaction.customerId);
+      fetchTransactions(customers);
+    }
   };
 
   const paginatedTransactions = filteredTransactions.slice(
@@ -99,13 +107,16 @@ const Transaction = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total Amount
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedTransactions.length === 0 ? (
                     <tr>
                       <td
-                        colSpan="4"
+                        colSpan="5"
                         className="px-6 py-4 text-center text-gray-500"
                       >
                         No transactions found
@@ -136,7 +147,7 @@ const Transaction = () => {
                                 className="flex items-center gap-2"
                               >
                                 <span className="font-medium">
-                                  {animal.name}
+                                  {animal.name || animal.type || "N/A"}
                                 </span>
                                 {details.length > 0 && (
                                   <span className="text-gray-500">
@@ -150,6 +161,24 @@ const Transaction = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           ₱{transaction.totalAmount}
+                        </td>
+                        {/* Edit & Delete Buttons */}
+                        <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                          <button
+                            className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
+                            onClick={() => {
+                              // Set modal open and pass transaction for editing
+                              setIsModalOpen(transaction);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                            onClick={() => handleDelete(transaction)}
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -193,7 +222,13 @@ const Transaction = () => {
       {/* Transaction Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-          <TransactionForm onClose={() => setIsModalOpen(false)} />
+          <TransactionForm
+            onClose={() => setIsModalOpen(false)}
+            // Pass transaction data if editing
+            transaction={
+              typeof isModalOpen === "object" ? isModalOpen : undefined
+            }
+          />
         </div>
       )}
     </AuthLayout>

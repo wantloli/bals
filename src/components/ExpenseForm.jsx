@@ -10,7 +10,7 @@ const ExpenseForm = ({
   isEditing,
 }) => {
   return (
-    <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+    <div className="bg-white p-6 rounded shadow-lg w-full max-w-3xl">
       <h2 className="text-xl font-bold mb-4">
         {isEditing ? "Edit Expense" : "Add Expense"}
       </h2>
