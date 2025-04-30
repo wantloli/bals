@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
-import './assets/fonts/font.css';
+import "./assets/fonts/font.css";
 import { CustomerPage } from "./pages/CustomerPage.jsx";
 import { Dashboard } from "./pages/Dashboard.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
@@ -16,6 +16,8 @@ import Transaction from "./pages/Transaction.jsx";
 import { TransactionProvider } from "./contexts/TransactionContext";
 import Employee from "./pages/Employee.jsx";
 import OperationalExpenses from "./pages/OperationalExpenses.jsx";
+import Settings from "./pages/Settings.jsx";
+import Download from "./pages/Download.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -62,6 +64,22 @@ createRoot(document.getElementById("root")).render(
                 element={
                   <ProtectedRoute>
                     <OperationalExpenses />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/download"
+                element={
+                  <ProtectedRoute>
+                    <Download />
                   </ProtectedRoute>
                 }
               />

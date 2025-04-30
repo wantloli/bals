@@ -135,8 +135,13 @@ const AuthLayout = ({ children }) => {
           {/* Operation Dropdown */}
           <li
             onClick={toggleOperation}
-            className="px-4 py-2 hover:bg-red-700 cursor-pointer flex justify-between items-center"
+            className="px-4 py-2 hover:bg-red-700 cursor-pointer space-x-2 flex items-center"
           >
+            <img
+              src="/src/assets/truck-white.svg"
+              alt="Settings Icon"
+              className="h-5 w-5"
+            />
             <span>Operation</span>
             <span>{isOperationOpen ? "▲" : "▼"}</span>
           </li>
@@ -161,9 +166,20 @@ const AuthLayout = ({ children }) => {
             </ul>
           )}
 
-          <li className="px-4 py-2 hover:bg-red-700 cursor-pointer">
-            Settings
-          </li>
+          <Link to="/settings">
+            <li
+              className={`px-4 py-2 hover:bg-red-700 cursor-pointer flex items-center space-x-2 ${
+                location.pathname === "/settings" ? "bg-red-700" : ""
+              }`}
+            >
+              <img
+                src="/src/assets/cog.svg"
+                alt="Settings Icon"
+                className="h-5 w-5"
+              />
+              <span>Settings</span>
+            </li>
+          </Link>
         </ul>
         <div className="mt-auto mb-20">
           <ul>

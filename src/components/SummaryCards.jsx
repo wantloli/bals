@@ -27,7 +27,7 @@ function SummaryCards({
       </div>
       <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
         <span className="text-gray-500 text-sm mb-1">
-          Income for this month
+          Income for this month ({currentMonthName} {currentYear})
         </span>
         <span className="text-2xl font-bold text-blue-600 flex items-center gap-3">
           {monthlyIncome.toLocaleString(undefined, {
@@ -58,7 +58,9 @@ function SummaryCards({
         </span>
       </div>
       <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-        <span className="text-gray-500 text-sm mb-1">Loss for this month</span>
+        <span className="text-gray-500 text-sm mb-1">
+          Loss for this month ({currentMonthName} {currentYear})
+        </span>
         <span className="text-2xl font-bold text-yellow-600 flex items-center gap-3">
           {monthlyLoss.toLocaleString(undefined, {
             style: "currency",
@@ -73,7 +75,7 @@ function SummaryCards({
       </div>
       <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
         <span className="text-gray-500 text-sm mb-1">
-          Employee Salaries (This Month)
+          Employee Salaries ({currentMonthName} {currentYear})
         </span>
         <span className="text-2xl font-bold text-purple-600 flex items-center gap-3">
           {employeeSalariesTotal.toLocaleString(undefined, {
