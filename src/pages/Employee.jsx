@@ -116,8 +116,8 @@ function Employee() {
 
   return (
     <AuthLayout>
-      <div className="min-h-screen py-6 px-4">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen py-6">
+        <div className="mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-4xl font-bold text-white uppercase">
               Employees
