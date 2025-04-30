@@ -26,6 +26,9 @@ const OperationalExpenses = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const [dateFilter, setDateFilter] = useState(""); // YYYY-MM-DD
+  const [monthFilter, setMonthFilter] = useState(""); // MM
+  const [yearFilter, setYearFilter] = useState(""); // YYYY
 
   // Fetch expenses from Firestore
   const fetchExpenses = async () => {
@@ -42,9 +45,47 @@ const OperationalExpenses = () => {
   }, []);
 
   // Search and pagination logic
-  const filteredExpenses = expenses.filter((expense) =>
-    expense.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredExpenses = expenses.filter((expense) => {
+    // Description filter
+    const matchesDescription = expense.description
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    // Date extraction
+    let expenseDateObj = null;
+    if (expense.timestamp) {
+      expenseDateObj = expense.timestamp.toDate
+        ? expense.timestamp.toDate()
+        : new Date(expense.timestamp);
+    }
+
+    // Only one filter type is active at a time
+    let matchesDate = true;
+    let matchesMonth = true;
+    let matchesYear = true;
+
+    if (dateFilter && expenseDateObj) {
+      const expenseDateStr = expenseDateObj.toISOString().slice(0, 10); // YYYY-MM-DD
+      matchesDate = expenseDateStr === dateFilter;
+      matchesMonth = true;
+      matchesYear = true;
+    } else if ((monthFilter || yearFilter) && expenseDateObj) {
+      if (monthFilter) {
+        const expenseMonth = String(expenseDateObj.getMonth() + 1).padStart(
+          2,
+          "0"
+        );
+        matchesMonth = expenseMonth === monthFilter;
+      }
+      if (yearFilter) {
+        const expenseYear = String(expenseDateObj.getFullYear());
+        matchesYear = expenseYear === yearFilter;
+      }
+      matchesDate = true;
+    }
+
+    return matchesDescription && matchesDate && matchesMonth && matchesYear;
+  });
   const totalPages = Math.max(
     1,
     Math.ceil(filteredExpenses.length / ITEMS_PER_PAGE)
@@ -57,6 +98,12 @@ const OperationalExpenses = () => {
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setDateFilter("");
+    setMonthFilter("");
+    setYearFilter("");
   };
 
   const handleSubmit = async () => {
@@ -173,15 +220,82 @@ const OperationalExpenses = () => {
             </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-4">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 mb-4 items-center">
             <input
               type="text"
               placeholder="Search expenses by description..."
               value={searchQuery}
               onChange={handleSearch}
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+              className="w-full md:w-auto flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none bg-white focus:ring-2 focus:ring-indigo-500"
             />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                if (e.target.value) {
+                  setMonthFilter("");
+                  setYearFilter("");
+                }
+              }}
+              className="px-4 py-2 rounded border border-gray-300 focus:outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+              placeholder="Filter by date"
+            />
+            <select
+              value={monthFilter}
+              onChange={(e) => {
+                setMonthFilter(e.target.value);
+                if (e.target.value) setDateFilter("");
+              }}
+              className="px-4 py-2 rounded border border-gray-300 focus:outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+              disabled={!!dateFilter}
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={String(i + 1).padStart(2, "0")}>
+                  {new Date(0, i).toLocaleString("default", { month: "long" })}
+                </option>
+              ))}
+            </select>
+            <select
+              value={yearFilter}
+              onChange={(e) => {
+                setYearFilter(e.target.value);
+                if (e.target.value) setDateFilter("");
+              }}
+              className="px-4 py-2 rounded border border-gray-300 focus:outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+              disabled={!!dateFilter}
+            >
+              <option value="">All Years</option>
+              {/* Dynamically generate year options from expenses */}
+              {Array.from(
+                new Set(
+                  expenses
+                    .map((exp) => {
+                      if (!exp.timestamp) return null;
+                      const d = exp.timestamp.toDate
+                        ? exp.timestamp.toDate()
+                        : new Date(exp.timestamp);
+                      return d.getFullYear();
+                    })
+                    .filter(Boolean)
+                )
+              )
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+            </select>
+            <button
+              onClick={handleResetFilters}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              type="button"
+            >
+              Reset Filters
+            </button>
           </div>
 
           {/* Table */}
@@ -213,7 +327,7 @@ const OperationalExpenses = () => {
                       {expense.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {expense.amount}
+                      ₱{expense.amount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {expense.timestamp
