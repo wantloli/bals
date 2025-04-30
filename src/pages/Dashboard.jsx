@@ -49,7 +49,7 @@ function Dashboard() {
   }, [transactions, currentYear, currentMonth]);
 
   // Calculate monthly income
-  const monthlyIncome = monthlySales - expensesTotal;
+  const monthlyIncome = monthlySales - expensesTotal;- employeeSalariesTotal;
 
   const totalAnnualSales = useMemo(() => {
     return transactions.reduce((sum, tx) => {
@@ -178,6 +178,7 @@ function Dashboard() {
           currentMonthName={currentMonthName}
           monthlyLoss={monthlyLoss}
           monthlyIncome={monthlyIncome}
+          employeeSalariesTotal={employeeSalariesTotal}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <SalesChart

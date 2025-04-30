@@ -4,10 +4,11 @@ function SummaryCards({
   expensesTotal,
   currentMonthName,
   monthlyLoss,
-  monthlyIncome, // new prop
+  monthlyIncome,
+  employeeSalariesTotal, // add this prop
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
       <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
         <span className="text-gray-500 text-sm mb-1">
           Total Annual Sales ({currentYear})
@@ -65,6 +66,22 @@ function SummaryCards({
           })}
           <img
             src="/src/assets/truck.svg"
+            alt="Dashboard Icon"
+            className="h-7 w-7"
+          />
+        </span>
+      </div>
+      <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+        <span className="text-gray-500 text-sm mb-1">
+          Employee Salaries (This Month)
+        </span>
+        <span className="text-2xl font-bold text-purple-600 flex items-center gap-3">
+          {employeeSalariesTotal.toLocaleString(undefined, {
+            style: "currency",
+            currency: "PHP",
+          })}
+          <img
+            src="/src/assets/user-group.svg"
             alt="Dashboard Icon"
             className="h-7 w-7"
           />
