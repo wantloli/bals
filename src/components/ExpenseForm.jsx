@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import ModalMessage from "./ModalMessage";
+import { ClipLoader } from "react-spinners";
 
 const ExpenseForm = ({
   description,
@@ -10,17 +12,49 @@ const ExpenseForm = ({
   onSubmit,
   onCancel,
   isEditing,
-  isNew, // receive isNew prop
+  isNew,
 }) => {
+  // Modal and loading state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("success");
+  const [modalMsg, setModalMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      // Simulate async submit (replace with real onSubmit if needed)
+      await new Promise((res) => setTimeout(res, 1200));
+      onSubmit && onSubmit();
+      setModalType("success");
+      setModalMsg(isEditing ? "Expense updated!" : "Expense added!");
+      setModalOpen(true);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setModalType("error");
+      setModalMsg("Something went wrong.");
+      setModalOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded shadow-lg w-full max-w-3xl">
+      {/* ModalMessage */}
+      <ModalMessage
+        open={modalOpen}
+        type={modalType}
+        message={modalMsg}
+        onClose={() => setModalOpen(false)}
+      />
       <h2 className="text-xl font-bold mb-4">
         {isEditing ? "Edit Expense" : "Add Expense"}
       </h2>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          onSubmit();
+          handleSubmit();
         }}
         className="space-y-4"
       >
@@ -51,7 +85,7 @@ const ExpenseForm = ({
             value={timestamp}
             onChange={(e) => setTimestamp(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2"
-            disabled={isNew} // Disable when adding new
+            disabled={isNew}
           />
           {isNew && (
             <div className="text-xs text-gray-500 mt-1">
@@ -59,19 +93,27 @@ const ExpenseForm = ({
             </div>
           )}
         </div>
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-2 items-center">
           <button
             type="button"
             onClick={onCancel}
             className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+            disabled={loading}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 flex items-center"
+            disabled={loading}
           >
-            {isEditing ? "Update" : "Add"}
+            {loading ? (
+              <ClipLoader size={20} color="#fff" />
+            ) : isEditing ? (
+              "Update"
+            ) : (
+              "Add"
+            )}
           </button>
         </div>
       </form>
