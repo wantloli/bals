@@ -6,6 +6,7 @@ import TransactionForm from "../components/TransactionForm";
 import SearchBar from "../components/SearchBar";
 import ConfirmModal from "../components/ConfirmModal";
 import ClipLoader from "react-spinners/ClipLoader";
+import { useNavigate } from "react-router-dom";
 
 const Transaction = () => {
   const { customers, fetchCustomers } = useCustomers();
@@ -19,6 +20,7 @@ const Transaction = () => {
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(""); // "" means all
   const [selectedYear, setSelectedYear] = useState(""); // "" means all
+  const navigate = useNavigate();
 
   // Get all years from transactions for dropdown
   const years = Array.from(
@@ -339,10 +341,27 @@ const Transaction = () => {
                           })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          ₱{transaction.totalAmount}
+                          <span
+                            className="text-indigo-600 font-bold cursor-pointer hover:underline"
+                            onClick={() =>
+                              navigate(`/transaction/${transaction.id}/reciept`)
+                            }
+                            title="View Receipt"
+                          >
+                            ₱{transaction.totalAmount}
+                          </span>
                         </td>
                         {/* Edit & Delete Buttons */}
                         <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                          <button
+                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            onClick={() =>
+                              navigate(`/transaction/${transaction.id}/reciept`)
+                            }
+                            title="View Receipt"
+                          >
+                            View Receipt
+                          </button>
                           <button
                             className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
                             onClick={() => {

@@ -18,6 +18,7 @@ import Employee from "./pages/Employee.jsx";
 import OperationalExpenses from "./pages/OperationalExpenses.jsx";
 import Settings from "./pages/Settings.jsx";
 import Download from "./pages/Download.jsx";
+import Reciept from "./pages/reciept.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -80,6 +81,14 @@ createRoot(document.getElementById("root")).render(
                 element={
                   <ProtectedRoute>
                     <Download />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/transaction/:id/reciept"
+                element={
+                  <ProtectedRoute>
+                    <Reciept />
                   </ProtectedRoute>
                 }
               />
