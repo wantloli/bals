@@ -236,7 +236,7 @@ const TransactionForm = ({ onClose, transaction }) => {
                   onChange={(e) =>
                     handleAnimalChange(index, "type", e.target.value)
                   }
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="flex-1 py-2 px-4 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 >
                   <option value="">Select Animal Type</option>
                   <option value="Hogs">Hogs</option>
@@ -251,7 +251,7 @@ const TransactionForm = ({ onClose, transaction }) => {
                   onChange={(e) =>
                     handleAnimalChange(index, "kilos", e.target.value)
                   }
-                  className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="w-24 py-2 px-4 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <input
                   type="number"
@@ -260,7 +260,7 @@ const TransactionForm = ({ onClose, transaction }) => {
                   onChange={(e) =>
                     handleAnimalChange(index, "heads", e.target.value)
                   }
-                  className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="w-24 py-2 px-4 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <input
                   type="number"
@@ -269,7 +269,7 @@ const TransactionForm = ({ onClose, transaction }) => {
                   onChange={(e) =>
                     handleAnimalChange(index, "price", e.target.value)
                   }
-                  className="w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="w-32 py-2 px-4 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <button
                   type="button"

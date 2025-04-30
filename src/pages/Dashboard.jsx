@@ -9,6 +9,7 @@ import SummaryCards from "../components/SummaryCards";
 import SalesChart from "../components/SalesChart";
 import TodaysTransactionsTable from "../components/TodaysTransactionsTable";
 import { startOfWeek, startOfMonth, startOfYear, isAfter } from "date-fns";
+import BarGraph from "../components/BarGraph";
 
 function Dashboard() {
   const { transactions, fetchTransactions, isLoading } = useTransactions();
@@ -190,6 +191,9 @@ function Dashboard() {
             isLoading={isLoading}
             navigate={navigate}
           />
+        </div>
+        <div className="mt-8">
+          <BarGraph transactions={transactions} />
         </div>
       </div>
     </AuthLayout>

@@ -5,6 +5,7 @@ import AuthLayout from "../components/AuthLayout";
 import TransactionForm from "../components/TransactionForm";
 import SearchBar from "../components/SearchBar";
 import ConfirmModal from "../components/ConfirmModal";
+import ClipLoader from "react-spinners/ClipLoader";
 
 const Transaction = () => {
   const { customers, fetchCustomers } = useCustomers();
@@ -106,8 +107,9 @@ const Transaction = () => {
 
           {/* Loading State */}
           {isLoading ? (
-            <div className="text-center py-4">
-              <p className="text-gray-600">Loading transactions...</p>
+            <div className="flex flex-col items-center py-8">
+              <ClipLoader color="#6366f1" size={48} />
+              <p className="text-white mt-4">Loading transactions...</p>
             </div>
           ) : (
             <div className="shadow rounded-lg overflow-hidden">
