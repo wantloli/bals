@@ -183,7 +183,7 @@ const OperationalExpenses = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedExpenses.map((expense) => (
-                  <tr key={expense.id} className="odd:bg-white even:bg-red-200">
+                  <tr key={expense.id} className="odd:bg-white even:bg-slate-200">
                     <td className="px-6 py-4 whitespace-nowrap uppercase">
                       {expense.description}
                     </td>

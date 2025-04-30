@@ -153,7 +153,7 @@ function Employee() {
                 {paginatedEmployees.map((employee) => (
                   <tr
                     key={employee.id}
-                    className="odd:bg-white even:bg-red-200"
+                    className="odd:bg-white even:bg-slate-200"
                   >
                     <td className="px-6 py-4 whitespace-nowrap uppercase">
                       {employee.name}

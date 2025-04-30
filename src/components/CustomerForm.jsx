@@ -124,7 +124,7 @@ function CustomerForm({ onClose, onSuccess }) {
             className="text-xl font-bold tracking-wider"
             style={{ fontFamily: "PlayfairDisplay, sans-serif" }}
           >
-            Add New Customer
+            Register New Customer
           </h2>
           <button
             onClick={onClose}

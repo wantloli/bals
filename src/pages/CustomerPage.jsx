@@ -6,6 +6,7 @@ import SearchBar from "../components/SearchBar";
 
 function CustomerPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLetter, setSelectedLetter] = useState("All");
   const {
     customers,
     fetchCustomers,
@@ -21,12 +22,29 @@ function CustomerPage() {
 
   const handleSearch = (query) => {
     searchCustomers(query);
+    setSelectedLetter("All");
+  };
+
+  const handleLetterFilter = (letter) => {
+    setSelectedLetter(letter);
+    if (letter === "All") {
+      fetchCustomers();
+    }
   };
 
   const handleSuccess = () => {
     fetchCustomers(); // Refresh the customer list
     setIsModalOpen(false); // Close the modal
   };
+
+  const filteredCustomers =
+    selectedLetter === "All"
+      ? customers
+      : customers.filter(
+          (customer) =>
+            typeof customer.name === "string" &&
+            customer.name.charAt(0).toUpperCase() === selectedLetter
+        );
 
   return (
     <AuthLayout>
@@ -40,8 +58,25 @@ function CustomerPage() {
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
-              Add Customer
+              Register a Customer
             </button>
+          </div>
+
+          {/* A-Z Filter Bar */}
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {["All", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].map((letter) => (
+              <button
+                key={letter}
+                onClick={() => handleLetterFilter(letter)}
+                className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
+                  selectedLetter === letter
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-indigo-100"
+                }`}
+              >
+                {letter}
+              </button>
+            ))}
           </div>
 
           {/* Reusable Search Bar */}
@@ -67,10 +102,10 @@ function CustomerPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {customers.map((customer) => (
+                {filteredCustomers.map((customer) => (
                   <tr
                     key={customer.id}
-                    className="odd:bg-white even:bg-red-200"
+                    className="odd:bg-white even:bg-slate-200"
                   >
                     <td className="px-6 py-4 whitespace-nowrap uppercase">
                       {customer.name}
