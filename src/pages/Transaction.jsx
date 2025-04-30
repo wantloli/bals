@@ -4,6 +4,7 @@ import { useTransactions } from "../contexts/TransactionContext";
 import AuthLayout from "../components/AuthLayout";
 import TransactionForm from "../components/TransactionForm";
 import SearchBar from "../components/SearchBar";
+import ConfirmModal from "../components/ConfirmModal";
 
 const Transaction = () => {
   const { customers, fetchCustomers } = useCustomers();
@@ -13,6 +14,8 @@ const Transaction = () => {
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
 
   useEffect(() => {
     fetchCustomers();
@@ -34,6 +37,7 @@ const Transaction = () => {
       transaction.customerName.toLowerCase().includes(lowerCaseQuery)
     );
     setFilteredTransactions(filtered);
+    setCurrentPage(1); // Reset to first page on search
   };
 
   const formatDate = (timestamp) => {
@@ -45,11 +49,26 @@ const Transaction = () => {
     return "Invalid Date";
   };
 
-  const handleDelete = async (transaction) => {
-    if (window.confirm("Are you sure you want to delete this transaction?")) {
-      await deleteTransaction(transaction.id, transaction.customerId);
+  const handleDeleteClick = (transaction) => {
+    setTransactionToDelete(transaction);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (transactionToDelete) {
+      await deleteTransaction(
+        transactionToDelete.id,
+        transactionToDelete.customerId
+      );
       fetchTransactions(customers);
+      setTransactionToDelete(null);
+      setConfirmOpen(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setTransactionToDelete(null);
+    setConfirmOpen(false);
   };
 
   const paginatedTransactions = filteredTransactions.slice(
@@ -175,7 +194,7 @@ const Transaction = () => {
                           </button>
                           <button
                             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                            onClick={() => handleDelete(transaction)}
+                            onClick={() => handleDeleteClick(transaction)}
                           >
                             Delete
                           </button>
@@ -231,6 +250,21 @@ const Transaction = () => {
           />
         </div>
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title="Delete Transaction"
+        message={
+          transactionToDelete
+            ? `Are you sure you want to delete this transaction for "${transactionToDelete.customerName}"?`
+            : ""
+        }
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </AuthLayout>
   );
 };

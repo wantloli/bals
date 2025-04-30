@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import ExpenseForm from "../components/ExpenseForm";
 import AuthLayout from "../components/AuthLayout";
+import ConfirmModal from "../components/ConfirmModal";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -22,6 +23,8 @@ const OperationalExpenses = () => {
   const [editId, setEditId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
 
   // Fetch expenses from Firestore
   const fetchExpenses = async () => {
@@ -106,6 +109,24 @@ const OperationalExpenses = () => {
     }
   };
 
+  const handleDeleteClick = (expense) => {
+    setExpenseToDelete(expense);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (expenseToDelete) {
+      await handleDelete(expenseToDelete.id);
+      setExpenseToDelete(null);
+      setConfirmOpen(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setExpenseToDelete(null);
+    setConfirmOpen(false);
+  };
+
   const handleModalClose = () => {
     setIsModalOpen(false);
     setDescription("");
@@ -177,7 +198,7 @@ const OperationalExpenses = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(expense.id)}
+                        onClick={() => handleDeleteClick(expense)}
                         className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
                       >
                         Delete
@@ -234,6 +255,20 @@ const OperationalExpenses = () => {
           />
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title="Delete Expense"
+        message={
+          expenseToDelete
+            ? `Are you sure you want to delete "${expenseToDelete.description}"?`
+            : ""
+        }
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </AuthLayout>
   );
 };
