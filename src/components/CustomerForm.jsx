@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { db } from "../firebase";
 import { collection, addDoc } from "firebase/firestore";
+import ClipLoader from "react-spinners/ClipLoader";
+import ModalMessage from "./ModalMessage"; // import ModalMessage
 
 function CustomerForm({ onClose, onSuccess }) {
   const barangays = [
@@ -61,7 +63,8 @@ function CustomerForm({ onClose, onSuccess }) {
   });
   const [selectedBarangay, setSelectedBarangay] = useState("");
   const [customAddress, setCustomAddress] = useState("");
-  const [status, setStatus] = useState({ message: "", error: false });
+  const [loading, setLoading] = useState(false); // add loading state
+  const [modal, setModal] = useState({ open: false, type: "", message: "" }); // modal state
 
   const handleChange = (e) => {
     setFormData({
@@ -72,6 +75,7 @@ function CustomerForm({ onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // start spinner
     const finalAddress =
       selectedBarangay === "Other" ? customAddress : selectedBarangay;
     try {
@@ -79,16 +83,29 @@ function CustomerForm({ onClose, onSuccess }) {
         ...formData,
         address: finalAddress,
       });
-      setStatus({ message: "Customer added successfully!", error: false });
+      setModal({
+        open: true,
+        type: "success",
+        message: "Customer added successfully!",
+      });
       setFormData({ name: "", address: "", contact: "" });
       setSelectedBarangay("");
       setCustomAddress("");
       onSuccess();
     } catch (error) {
-      setStatus({
+      setModal({
+        open: true,
+        type: "error",
         message: "Error adding customer: " + error.message,
-        error: true,
       });
+    }
+    setLoading(false); // stop spinner
+  };
+
+  const handleModalClose = () => {
+    setModal({ open: false, type: "", message: "" });
+    if (modal.type === "success") {
+      onClose();
     }
   };
 
@@ -116,18 +133,6 @@ function CustomerForm({ onClose, onSuccess }) {
             ×
           </button>
         </div>
-
-        {status.message && (
-          <div
-            className={`p-4 rounded-md ${
-              status.error
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
-            }`}
-          >
-            {status.message}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -202,11 +207,18 @@ function CustomerForm({ onClose, onSuccess }) {
           <button
             type="submit"
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 uppercase"
+            disabled={loading}
           >
-            Add Customer
+            {loading ? <ClipLoader color="#fff" size={20} /> : "Add Customer"}
           </button>
         </form>
       </div>
+      <ModalMessage
+        open={modal.open}
+        type={modal.type}
+        message={modal.message}
+        onClose={handleModalClose}
+      />
     </div>
   );
 }

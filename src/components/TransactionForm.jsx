@@ -242,7 +242,7 @@ const TransactionForm = ({ onClose, transaction }) => {
                   <option value="Hogs">Hogs</option>
                   <option value="Chicken">Chicken</option>
                   <option value="Cattle">Cattle</option>
-                  <option value="Sheep">Sheep</option>
+                  <option value="Goat">Goat</option>
                 </select>
                 <input
                   type="number"
