@@ -17,6 +17,45 @@ const Transaction = () => {
   const itemsPerPage = 10;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(""); // "" means all
+  const [selectedYear, setSelectedYear] = useState(""); // "" means all
+
+  // Get all years from transactions for dropdown
+  const years = Array.from(
+    new Set(
+      transactions
+        .map((t) => {
+          let date;
+          if (t.timestamp instanceof Date) date = t.timestamp;
+          else if (t.timestamp?.seconds)
+            date = new Date(t.timestamp.seconds * 1000);
+          else return null;
+          return date.getFullYear();
+        })
+        .filter(Boolean)
+    )
+  ).sort((a, b) => b - a);
+
+  // Months for dropdown
+  const months = [
+    { value: "", label: "All Months" },
+    { value: "0", label: "January" },
+    { value: "1", label: "February" },
+    { value: "2", label: "March" },
+    { value: "3", label: "April" },
+    { value: "4", label: "May" },
+    { value: "5", label: "June" },
+    { value: "6", label: "July" },
+    { value: "7", label: "August" },
+    { value: "8", label: "September" },
+    { value: "9", label: "October" },
+    { value: "10", label: "November" },
+    { value: "11", label: "December" },
+  ];
+
+  // Add a helper to get current month/year as string
+  const getCurrentMonth = () => new Date().getMonth().toString();
+  const getCurrentYear = () => new Date().getFullYear().toString();
 
   useEffect(() => {
     fetchCustomers();
@@ -33,13 +72,54 @@ const Transaction = () => {
   }, [transactions]);
 
   const handleSearch = (query) => {
-    const lowerCaseQuery = query.toLowerCase();
-    const filtered = transactions.filter((transaction) =>
-      transaction.customerName.toLowerCase().includes(lowerCaseQuery)
-    );
-    setFilteredTransactions(filtered);
-    setCurrentPage(1); // Reset to first page on search
+    filterTransactions(query, selectedMonth, selectedYear);
   };
+
+  // New: filter by search, month, year
+  const filterTransactions = (query, month, year) => {
+    const lowerCaseQuery = query ? query.toLowerCase() : "";
+    const filtered = transactions.filter((transaction) => {
+      // Search filter
+      const matchesSearch = transaction.customerName
+        .toLowerCase()
+        .includes(lowerCaseQuery);
+
+      // Date filter
+      let date;
+      if (transaction.timestamp instanceof Date) date = transaction.timestamp;
+      else if (transaction.timestamp?.seconds)
+        date = new Date(transaction.timestamp.seconds * 1000);
+      else date = null;
+
+      const matchesMonth =
+        month === "" || (date && date.getMonth().toString() === month);
+      const matchesYear =
+        year === "" || (date && date.getFullYear().toString() === year);
+
+      return matchesSearch && matchesMonth && matchesYear;
+    });
+    setFilteredTransactions(filtered);
+    setCurrentPage(1);
+  };
+
+  // When month/year changes, re-filter
+  useEffect(() => {
+    filterTransactions("", selectedMonth, selectedYear);
+    // eslint-disable-next-line
+  }, [selectedMonth, selectedYear, transactions]);
+
+  // Add a reset handler
+  const handleResetFilters = () => {
+    setSelectedMonth(getCurrentMonth());
+    setSelectedYear(getCurrentYear());
+    filterTransactions("", getCurrentMonth(), getCurrentYear());
+  };
+
+  // On mount, set default to current month/year
+  useEffect(() => {
+    setSelectedMonth(getCurrentMonth());
+    setSelectedYear(getCurrentYear());
+  }, []);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "N/A";
@@ -99,11 +179,89 @@ const Transaction = () => {
             </button>
           </div>
 
-          {/* Reusable Search Bar */}
-          <SearchBar
-            placeholder="Search by customer name..."
-            onSearch={handleSearch}
-          />
+          {/* Filter Card */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow-lg p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+              <h3 className="text-white font-semibold">Filter Transactions</h3>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="space-y-1">
+                <label className="block text-white text-sm font-medium mb-1">
+                  Month
+                </label>
+                <select
+                  className="p-2 w-60 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white/90"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                >
+                  {months.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-white text-sm font-medium mb-1">
+                  Year
+                </label>
+                <select
+                  className="p-2 w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white/90"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {years.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2 h-[38px]"
+                onClick={handleResetFilters}
+                type="button"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <SearchBar
+              placeholder="Search by customer name..."
+              onSearch={handleSearch}
+            />
+          </div>
 
           {/* Loading State */}
           {isLoading ? (

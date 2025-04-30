@@ -5,9 +5,12 @@ const ExpenseForm = ({
   setDescription,
   amount,
   setAmount,
+  timestamp,
+  setTimestamp,
   onSubmit,
   onCancel,
   isEditing,
+  isNew, // receive isNew prop
 }) => {
   return (
     <div className="bg-white p-6 rounded shadow-lg w-full max-w-3xl">
@@ -40,6 +43,21 @@ const ExpenseForm = ({
             className="w-full border border-gray-300 rounded px-3 py-2"
             placeholder="Enter amount"
           />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Date & Time</label>
+          <input
+            type="datetime-local"
+            value={timestamp}
+            onChange={(e) => setTimestamp(e.target.value)}
+            className="w-full border border-gray-300 rounded px-3 py-2"
+            disabled={isNew} // Disable when adding new
+          />
+          {isNew && (
+            <div className="text-xs text-gray-500 mt-1">
+              Timestamp will be set automatically.
+            </div>
+          )}
         </div>
         <div className="flex justify-end space-x-2">
           <button

@@ -68,7 +68,7 @@ function CustomerPage() {
               <button
                 key={letter}
                 onClick={() => handleLetterFilter(letter)}
-                className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
+                className={`px-3 py-2 rounded text-xs font-semibold uppercase ${
                   selectedLetter === letter
                     ? "bg-indigo-600 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-indigo-100"

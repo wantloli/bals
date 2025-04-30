@@ -18,6 +18,7 @@ const ITEMS_PER_PAGE = 10;
 const OperationalExpenses = () => {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
+  const [timestamp, setTimestamp] = useState(""); // Add timestamp state
   const [expenses, setExpenses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -70,18 +71,20 @@ const OperationalExpenses = () => {
         await updateDoc(expenseDoc, {
           description,
           amount: parseFloat(amount),
+          timestamp: timestamp ? new Date(timestamp) : serverTimestamp(),
         });
         alert("Expense updated successfully!");
       } else {
         await addDoc(collection(db, "expenses"), {
           description,
           amount: parseFloat(amount),
-          timestamp: serverTimestamp(),
+          timestamp: serverTimestamp(), // Always use serverTimestamp for new
         });
         alert("Expense added successfully!");
       }
       setDescription("");
       setAmount("");
+      setTimestamp("");
       setEditId(null);
       setIsModalOpen(false);
       fetchExpenses();
@@ -95,6 +98,17 @@ const OperationalExpenses = () => {
     setDescription(expense.description);
     setAmount(expense.amount);
     setEditId(expense.id);
+    // Convert Firestore Timestamp to input[type=datetime-local] string
+    let ts = "";
+    if (expense.timestamp) {
+      const dateObj = expense.timestamp.toDate
+        ? expense.timestamp.toDate()
+        : new Date(expense.timestamp);
+      ts = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+    }
+    setTimestamp(ts);
     setIsModalOpen(true);
   };
 
@@ -131,6 +145,7 @@ const OperationalExpenses = () => {
     setIsModalOpen(false);
     setDescription("");
     setAmount("");
+    setTimestamp("");
     setEditId(null);
   };
 
@@ -150,7 +165,11 @@ const OperationalExpenses = () => {
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
-              Add Expense
+              <img
+                src="/src/assets/add.svg"
+                alt="Logout Icon"
+                className="h-5 w-5"
+              />
             </button>
           </div>
 
@@ -177,18 +196,32 @@ const OperationalExpenses = () => {
                     Amount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date & Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedExpenses.map((expense) => (
-                  <tr key={expense.id} className="odd:bg-white even:bg-slate-200">
+                  <tr
+                    key={expense.id}
+                    className="odd:bg-white even:bg-slate-200"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap uppercase">
                       {expense.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {expense.amount}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {expense.timestamp
+                        ? (expense.timestamp.toDate
+                            ? expense.timestamp.toDate()
+                            : new Date(expense.timestamp)
+                          ).toLocaleString()
+                        : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
@@ -249,9 +282,12 @@ const OperationalExpenses = () => {
             setDescription={setDescription}
             amount={amount}
             setAmount={setAmount}
+            timestamp={timestamp}
+            setTimestamp={setTimestamp}
             onSubmit={handleSubmit}
             onCancel={handleModalClose}
             isEditing={!!editId}
+            isNew={!editId} // Pass isNew prop
           />
         </div>
       )}
